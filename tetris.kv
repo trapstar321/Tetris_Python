@@ -1,0 +1,35 @@
+
+<CellBorder>		
+	canvas:		
+		Color:
+        	rgba: self.red, self.green, self.blue, 1
+		Rectangle:
+			size: self.parent.size
+			pos:self.parent.pos
+			
+
+<CellBackground>
+	canvas:		
+		Color:
+        	rgba: self.red, self.green, self.blue, 1
+		Rectangle:
+			size:self.size(),self.size()
+			pos:self.parent.x+self.margin(),self.parent.y+self.margin()
+			
+<Cell>	
+	border:brdr
+	background:bckgrnd
+	
+	CellBorder:
+		id:brdr
+	CellBackground:
+		id:bckgrnd
+	
+		
+		
+		
+						
+		
+
+
+	
