@@ -1,6 +1,6 @@
 from point import Point
-from cell_w import Cell
-from rotation import rotate_around_origin
+from cell_w import Cell, CellBackground
+from rotation import rotate_around_origin_clockwise, rotate_around_origin_counter_clockwise
 from movement import Movement
 
 class Shape(object):
@@ -16,9 +16,10 @@ class Shape(object):
         
     def add_cell(self, point):
         assert point.x<Shape.MAX_X #and point.y<Shape.MAX_Y
-        assert point.x>=Shape.MIN_Y and point.y>=Shape.MIN_Y
-        
+        assert point.x>=Shape.MIN_Y and point.y>=Shape.MIN_Y    
+                
         c = Cell(point=point)
+        
         self.cells.append(c)        
         c.pos = (point.x*c.size[0], point.y*c.size[1])
     
@@ -97,7 +98,7 @@ class Shape(object):
             self.move(Movement.UP)
         
         for cell in self.cells[1:]:
-            new_position = rotate_around_origin(self.origin.as_tuple(), cell.point.as_tuple())
+            new_position = rotate_around_origin_clockwise(self.origin.as_tuple(), cell.point.as_tuple())
             
             self.move_cell(cell, new_position) 
             
@@ -151,11 +152,66 @@ class LShapeRight(Shape):
 class LShapeLeft(Shape):
     def __init__(self, origin):
         super(LShapeLeft, self).__init__(origin)
-        
-        self.add_cell(origin)
+                
+        self.add_cell(origin)        
         self.add_cell(Point(origin.x, origin.y-1))
         self.add_cell(Point(origin.x, origin.y+1))
+        self.add_cell(Point(origin.x-1, origin.y-1))              
+
+class ZShape(Shape):
+    def __init__(self, origin):
+        self.rotation_counter=0
+        super(ZShape, self).__init__(origin)
+        
+    def rotate(self):        
+        if self.origin.x==Shape.MAX_X-1:
+            self.move(Movement.LEFT)
+        elif self.origin.x==Shape.MIN_X:
+            self.move(Movement.RIGHT)
+        elif self.origin.y==Shape.MIN_Y:
+            self.move(Movement.UP)
+        
+        self.rotation_counter+=1
+        rotation=range(0,3)
+        method=rotate_around_origin_clockwise
+        if self.rotation_counter==2:            
+            rotation=range(0,1)
+            method=rotate_around_origin_counter_clockwise
+        elif self.rotation_counter==3:            
+            rotation=range(0,3)
+            method=rotate_around_origin_counter_clockwise
+        elif self.rotation_counter==4:            
+            rotation=range(0,1)
+            method=rotate_around_origin_clockwise
+        
+        if self.rotation_counter==4:
+            self.rotation_counter=0
+        
+        for cell in self.cells[1:]:
+            for _ in rotation:
+                new_position = method(self.origin.as_tuple(), cell.point.as_tuple())
+                self.move_cell(cell, new_position)
+        
+        
+class ZShapeLeft(ZShape):
+    def __init__(self, origin):
+        super(ZShapeLeft, self).__init__(origin)
+        
+        CellBackground.green=1
+        self.add_cell(origin)
+        CellBackground.green=0
+        self.add_cell(Point(origin.x-1, origin.y))
         self.add_cell(Point(origin.x-1, origin.y-1))        
+        self.add_cell(Point(origin.x, origin.y+1)) 
+        
+class ZShapeRight(ZShape):
+    def __init__(self, origin):
+        super(ZShapeRight, self).__init__(origin)
+        
+        self.add_cell(origin)
+        self.add_cell(Point(origin.x-1, origin.y))
+        self.add_cell(Point(origin.x-1, origin.y+1))        
+        self.add_cell(Point(origin.x, origin.y-1))   
         
 if __name__=="__main__":
     sh1 = TShape(Point(3,3))

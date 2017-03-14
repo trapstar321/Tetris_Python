@@ -17,11 +17,15 @@ class TetrisApp(App):
     def random_shape(self):
         starting_pos = Point(4,21)
         shapes = {}
-        shapes[0]=TShape
-        shapes[1]=LShapeRight
-        shapes[2]=LShapeLeft
+        #shapes[0]=TShape
+        #shapes[1]=LShapeRight
+        #hapes[2]=LShapeLeft
+        #shapes[3]=ZShapeRight
+        #shapes[4]=ZShapeLeft
+        shapes[0]=ZShapeRight
         
-        return shapes[randint(0,2)](starting_pos)
+        #return shapes[randint(0,4)](starting_pos)
+        return shapes[0](starting_pos)
     
     def random_background(self):
         CellBackground.red=randint(0,1)

@@ -12,6 +12,8 @@ class Tetris(Widget):
     S=115
     D=100
     SPACE=32
+    W=119
+    UP=273    
     
     def __init__(self, **kwargs):
         super(Tetris, self).__init__(**kwargs)
@@ -19,20 +21,22 @@ class Tetris(Widget):
         self.current=None
         
         self.keys = {}
-        self.keys[Tetris.LEFT]=False
-        self.keys[Tetris.DOWN]=False
-        self.keys[Tetris.RIGHT]=False
-        self.keys[Tetris.A]=False
-        self.keys[Tetris.S]=False
-        self.keys[Tetris.D]=False
-        self.keys[Tetris.SPACE]=False
+        self.keys[Tetris.LEFT]={'handled':True, 'keydown':False}
+        self.keys[Tetris.DOWN]={'handled':True, 'keydown':False}
+        self.keys[Tetris.RIGHT]={'handled':True, 'keydown':False}
+        self.keys[Tetris.A]={'handled':True, 'keydown':False}
+        self.keys[Tetris.S]={'handled':True, 'keydown':False}
+        self.keys[Tetris.D]={'handled':True, 'keydown':False}
+        self.keys[Tetris.SPACE]={'handled':True, 'keydown':False}
+        self.keys[Tetris.W]={'handled':True, 'keydown':False}
+        self.keys[Tetris.UP]={'handled':True, 'keydown':False}        
         
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
         self._keyboard.bind(on_key_up=self._on_keyboard_up)
     
-        Clock.schedule_interval(self.movement, 0.05)
-        Clock.schedule_interval(self.rotation, 0.1) 
+        Clock.schedule_interval(self.movement, 0.07)
+        Clock.schedule_interval(self.rotation, 0.2) 
     
     def add_shape(self, shape):
         self.shapes.append(shape)
@@ -57,34 +61,34 @@ class Tetris(Widget):
         self._keyboard=None
 
     def _on_keyboard_up(self, keyboard, keycode):
-        self.keys[keycode[0]]=False
+        if keycode[0] in self.keys:                
+            self.keys[keycode[0]]['keydown']=False
        
-    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        self.keys[keycode[0]]=True     
-        #if keycode[0]==Tetris.SPACE:
-        #    self.current.rotate()
-        #elif keycode[0]==Tetris.S or keycode[0]==Tetris.DOWN:
-        #    self.current.move(Movement.DOWN)
-        #elif keycode[0]==Tetris.A or keycode[0]==Tetris.LEFT:
-        #    self.current.move(Movement.LEFT)
-        #elif keycode[0]==Tetris.D or keycode[0]==Tetris.RIGHT:
-        #    self.current.move(Movement.RIGHT)
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):        
+        if keycode[0] in self.keys:        
+            self.keys[keycode[0]]['keydown']=True
+            self.keys[keycode[0]]['handled']=False
         
-    def movement(self,dt):
-        #border constraints
-        if self.keys[Tetris.LEFT] or self.keys[Tetris.A]:
+    def key_pressed(self, key):
+        if key in self.keys:
+            ret = self.keys[key]['keydown'] or not self.keys[key]['handled']
+            self.keys[key]['handled']=True
+        else:
+            ret = False
+        return ret
+        
+    def movement(self,dt):        
+        if self.key_pressed(Tetris.LEFT) or self.key_pressed(Tetris.A):
             if self.current.can_move(Movement.LEFT, self.shapes):
                 self.current.move(Movement.LEFT)
-        elif self.keys[Tetris.RIGHT] or self.keys[Tetris.D]:
+        elif self.key_pressed(Tetris.RIGHT) or self.key_pressed(Tetris.D):
             if self.current.can_move(Movement.RIGHT, self.shapes):
                 self.current.move(Movement.RIGHT)
-        if self.keys[Tetris.DOWN] or self.keys[Tetris.S]:
+        if self.key_pressed(Tetris.DOWN) or self.key_pressed(Tetris.S):
             if self.current.can_move(Movement.DOWN, self.shapes):            
-                self.current.move(Movement.DOWN)
-                
-        #TODO: left right collision and movement    
+                self.current.move(Movement.DOWN)  
                 
         
     def rotation(self, dt):
-        if self.keys[Tetris.SPACE]:            
+        if self.key_pressed(Tetris.SPACE) or self.key_pressed(Tetris.UP) or self.key_pressed(Tetris.W):            
             self.current.rotate()

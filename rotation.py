@@ -6,14 +6,30 @@ from point import Point
 rotation_matrix_clockwise=numpy.array(
     [
          [0,-1],
-         [1,0]
+         [1, 0]
     ]
 )
 
-def rotate_around_origin(origin, point):
+rotation_matrix_counter_clockwise=numpy.array(
+    [
+         [0,1],
+         [-1, 0]
+    ]
+)
+
+def rotate_around_origin_clockwise(origin, point):
     v1 = Vector(point)-Vector(origin)
     
     v2 = rotation_matrix_clockwise.dot(v1)
+    
+    new_position = Vector(origin)-Vector(v2)    
+    
+    return Point(new_position[0], new_position[1])
+
+def rotate_around_origin_counter_clockwise(origin, point):
+    v1 = Vector(point)-Vector(origin)
+    
+    v2 = rotation_matrix_counter_clockwise.dot(v1)
     
     new_position = Vector(origin)-Vector(v2)    
     
