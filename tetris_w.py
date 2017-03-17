@@ -3,6 +3,7 @@ from kivy.core.window import Window
 from movement import Movement
 from kivy.clock import Clock
 from point import Point
+from shapes import Shape
 
 class Tetris(Widget):
     LEFT=276
@@ -77,18 +78,65 @@ class Tetris(Widget):
             ret = False
         return ret
         
-    def movement(self,dt):        
+    def movement(self,dt):
+        collision=None        
         if self.key_pressed(Tetris.LEFT) or self.key_pressed(Tetris.A):
-            if self.current.can_move(Movement.LEFT, self.shapes):
-                self.current.move(Movement.LEFT)
+            new_positions = self.current.move(Movement.LEFT)
+            collision=self.current.collision(new_positions, self.shapes)
+            if not collision:
+                self.current.apply_changes(new_positions)                     
         elif self.key_pressed(Tetris.RIGHT) or self.key_pressed(Tetris.D):
-            if self.current.can_move(Movement.RIGHT, self.shapes):
-                self.current.move(Movement.RIGHT)
+            new_positions = self.current.move(Movement.RIGHT)
+            collision=self.current.collision(new_positions, self.shapes)
+            if not collision:
+                self.current.apply_changes(new_positions)            
         if self.key_pressed(Tetris.DOWN) or self.key_pressed(Tetris.S):
-            if self.current.can_move(Movement.DOWN, self.shapes):            
-                self.current.move(Movement.DOWN)  
-                
+            new_positions = self.current.move(Movement.DOWN)
+            collision=self.current.collision(new_positions, self.shapes)
+            if not collision:
+                self.current.apply_changes(new_positions) 
+            else:
+                self.current.lock_shape() 
         
     def rotation(self, dt):
-        if self.key_pressed(Tetris.SPACE) or self.key_pressed(Tetris.UP) or self.key_pressed(Tetris.W):            
-            self.current.rotate()
+        if self.key_pressed(Tetris.SPACE) or self.key_pressed(Tetris.UP) or self.key_pressed(Tetris.W):
+            self.current.rotate(self.shapes)
+     
+    def remove_row(self, y):
+        for x in range(0, Shape.MAX_X):
+            for shape in self.shapes:
+                for cell in shape.get_cell(Point(x,y)):
+                    shape.remove_cell(cell)
+                    self.remove_widget(cell)        
+               
+    def remove_full(self):
+        rows_removed = []
+        for y in range(0,Shape.MAX_Y):
+            found_cnt = 0
+            for x in range(0,Shape.MAX_X):
+                found=False
+                for shape in self.shapes:
+                    if len(list(shape.get_cell(Point(x,y))))>0:
+                        found=True
+                        break;
+                if found:
+                    found_cnt+=1
+                    #print('Found {0}:{1}'.format(x,y))
+                    if x==Shape.MAX_X-1:
+                        #print('Remove row {0}'.format(y))
+                        self.remove_row(y)
+                        rows_removed.append(y)
+                        
+                else:
+                    #print("Row {0} not full".format(y))
+                    break            
+        
+        #move all cells after last removed row one row down
+        if(len(rows_removed))>0:
+            print(max(rows_removed))
+            for y in range(max(rows_removed)+1,Shape.MAX_Y) :
+                for x in range(0, Shape.MAX_X):
+                    for shape in self.shapes:
+                        cells = shape.get_cell(Point(x,y))
+                        for cell in cells:
+                            shape.move_cell(cell, Point(cell.point.x, cell.point.y-len(rows_removed)))                 

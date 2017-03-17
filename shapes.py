@@ -1,7 +1,8 @@
 from point import Point
 from cell_w import Cell, CellBackground
-from rotation import rotate_around_origin_clockwise, rotate_around_origin_counter_clockwise
+from rotation import rotate_around_origin_clockwise, rotate_around_origin_counter_clockwise, Rotation
 from movement import Movement
+from enum import Enum
 
 class Shape(object):
     MAX_X=10
@@ -34,75 +35,123 @@ class Shape(object):
         cell.pos = pos
         cell.point=new_position    
 
-    def collision_check(self, movement, shapes):
-        changed_prop = None
-        unchanged_prop= None
-        direction = None
-        if movement==Movement.DOWN:
-            changed_prop='y'
-            unchanged_prop='x'
-            direction=-1
-        elif movement==Movement.LEFT:
-            changed_prop='x'
-            unchanged_prop='y'
-            direction=-1
-        elif movement==Movement.RIGHT:
-            changed_prop='x'
-            unchanged_prop='y'
-            direction=1
-        
-        cells = self.cells        
-        for shape in shapes:
-            if shape is self:
-                continue
-            for cell in cells:                                
-                for c in shape.cells:                                                 
-                    if getattr(c.point,changed_prop)==getattr(cell.point, changed_prop)+direction and getattr(c.point,unchanged_prop)==getattr(cell.point, unchanged_prop):
-                        return True
-        return False
-
-    def can_move(self, movement, shapes):
+    def collision(self, new_positions, shapes):
         if self.locked:
-            return False
-        if movement==Movement.LEFT:
-            for cell in self.cells:
-                if cell.point.x<=Shape.MIN_X:                    
-                    return False
-        elif movement==Movement.RIGHT:
-            for cell in self.cells:
-                if cell.point.x>=Shape.MAX_X-1:                    
-                    return False
-        if movement==Movement.DOWN:
-            for cell in self.cells:                
-                if cell.point.y<=Shape.MIN_Y:
-                    self.lock_shape()
-                    return False
+            return True
+        
+        for pos in new_positions.values():           
+            if pos.x<Shape.MIN_X:  
+                print('Collide with left edge')                  
+                return True
+            if pos.x>Shape.MAX_X-1:
+                print('Collide with right edge')                    
+                return True
+            if pos.y<Shape.MIN_Y:        
+                print('Collide with bottom')        
+                return True
             
-        if self.collision_check(movement, shapes):
-            print("Collision")
-            if movement==Movement.DOWN:
-                self.lock_shape()
-            return False   
+            for shape in shapes: 
+                if shape is self:
+                    continue               
+                for cell in shape.cells:
+                    if cell.point.x==pos.x and cell.point.y==pos.y:                        
+                        return True                             
                 
-        return True
+        return None
 
-    def remove_cell(self, point):
-        pass
+    def remove_cell(self, cell):
+        self.cells.remove(cell)
+            
     
-    def rotate(self):
-        if self.origin.x==Shape.MAX_X-1:
-            self.move(Movement.LEFT)
+    #rotate with collision check
+    #if rotation is successfull without collision, changes are applied to cells of shape
+    def try_rotate(self, positions, rotation, degrees, shapes):
+        x = int(degrees/90)
+        if rotation==Rotation.CLOCKWISE: 
+            for _ in range(0,x):           
+                for key, value in positions.items():                
+                    positions[key] = rotate_around_origin_clockwise(positions[self.cells[0]].as_tuple(), value.as_tuple())
+                if not self.collision(positions, shapes):                
+                    continue
+                else:
+                    print('Collision')
+                    return True
+            self.apply_changes(positions)
+        elif rotation==Rotation.COUNTER_CLOCKWISE:
+            for _ in range(0,x):
+                for key, value in positions.items():                
+                    positions[key] = rotate_around_origin_counter_clockwise(positions[self.cells[0]].as_tuple(), value.as_tuple())
+                if not self.collision(positions, shapes):
+                    continue
+                else:
+                    print('Collision')
+                    return True
+            self.apply_changes(positions) 
+        return False               
+    
+    def try_move_with_rotate(self, movement, rotation, degrees, shapes): 
+        new_positions = self.move(movement)
+        collision = self.collision(new_positions, shapes)
+        if not collision:
+            print('Move left and rotate')
+            if not self.try_rotate(new_positions, rotation, degrees, shapes):
+                return False
+        else:
+            print('Collision')
+            return False
+        return True
+    
+    def rotate(self, shapes):
+        new_positions={}
+        
+        collision=None
+        #move shape if its close to edge and can rotate after that                   
+        if self.origin.x==Shape.MAX_X-1:    
+            if not self.try_move_with_rotate(Movement.LEFT, Rotation.CLOCKWISE, 90, shapes):
+                return 
         elif self.origin.x==Shape.MIN_X:
-            self.move(Movement.RIGHT)
+            if not self.try_move_with_rotate(Movement.RIGHT, Rotation.CLOCKWISE, 90, shapes):
+                return
         elif self.origin.y==Shape.MIN_Y:
-            self.move(Movement.UP)
+            if not self.try_move_with_rotate(Movement.UP, Rotation.CLOCKWISE, 90, shapes):
+                return
+        
+        print('Did not move before rotating')
         
         for cell in self.cells[1:]:
-            new_position = rotate_around_origin_clockwise(self.origin.as_tuple(), cell.point.as_tuple())
-            
-            self.move_cell(cell, new_position) 
-            
-    def move(self, movement):                
+            new_positions[cell] = rotate_around_origin_clockwise(self.origin.as_tuple(), cell.point.as_tuple())
+        
+        if not self.collision(new_positions, shapes):
+            self.apply_changes(new_positions) 
+        else:
+            print('Try move left')
+            new_positions = self.move(Movement.LEFT)
+            collision=self.collision(new_positions, shapes)
+            if not collision:          
+                if not self.try_rotate(new_positions, Rotation.CLOCKWISE, 90, shapes):
+                    return 
+                else:
+                    collision=True 
+            if collision:     
+                print('Try move right')           
+                new_positions = self.move(Movement.RIGHT)
+                collision = self.collision(new_positions, shapes)
+                if not collision:
+                    if not self.try_rotate(new_positions, Rotation.CLOCKWISE, 90, shapes):
+                        return
+                    else:  
+                        collision=True
+            if collision:    
+                print('Try move up')
+                new_positions = self.move(Movement.UP)
+                if not self.collision(new_positions, shapes):                
+                    if not self.try_rotate(new_positions, Rotation.CLOCKWISE, 90, shapes):
+                        return  
+                    else:
+                        collision=True
+                
+    def move(self, movement): 
+        new_positions={}             
         if movement==Movement.LEFT or movement==Movement.RIGHT:
             x=None
             if movement==Movement.RIGHT:
@@ -110,19 +159,24 @@ class Shape(object):
             else:
                 x=-1
             for cell in self.cells:
-                new_position=Point(cell.point.x+x, cell.point.y)                
-                self.move_cell(cell, new_position)
-            self.origin=self.cells[0].point
+                new_positions[cell]=Point(cell.point.x+x, cell.point.y)
         if movement==Movement.UP: 
             for cell in self.cells:
-                new_position=Point(cell.point.x, cell.point.y+1)                
-                self.move_cell(cell, new_position)
-            self.origin=self.cells[0].point           
+                new_positions[cell]=Point(cell.point.x, cell.point.y+1)     
         elif movement==Movement.DOWN:
             for cell in self.cells:
-                new_position=Point(cell.point.x, cell.point.y-1)                
-                self.move_cell(cell, new_position)
-            self.origin=self.cells[0].point
+                new_positions[cell]=Point(cell.point.x, cell.point.y-1)
+            
+        return new_positions
+    
+    def apply_changes(self, new_positions):        
+        for cell in self.cells:
+            try:
+                cell.point = new_positions[cell]
+                cell.pos = (int(cell.point.x*cell.size[0]), int(cell.point.y*cell.size[1]))
+            except KeyError:
+                pass
+        self.origin=self.cells[0].point        
     
     def lock_shape(self):
         self.locked=True            
@@ -163,7 +217,7 @@ class ZShape(Shape):
         self.rotation_counter=0
         super(ZShape, self).__init__(origin)
         
-    def rotate(self):        
+    def rotate_(self):        
         if self.origin.x==Shape.MAX_X-1:
             self.move(Movement.LEFT)
         elif self.origin.x==Shape.MIN_X:
@@ -191,15 +245,87 @@ class ZShape(Shape):
             for _ in rotation:
                 new_position = method(self.origin.as_tuple(), cell.point.as_tuple())
                 self.move_cell(cell, new_position)
+    
+    def rotate(self, shapes):
+        new_positions={}
         
+        tmp_counter = self.rotation_counter
+        
+        tmp_counter+=1
+        degrees=270
+        rotation=Rotation.CLOCKWISE
+        if tmp_counter==2:            
+            degrees=90
+            rotation=Rotation.COUNTER_CLOCKWISE
+        elif tmp_counter==3:            
+            degrees=270
+            rotation=Rotation.COUNTER_CLOCKWISE
+        elif tmp_counter==4:            
+            degrees=90
+            rotation=Rotation.CLOCKWISE
+        
+        if tmp_counter==4:
+            tmp_counter=0
+        
+        collision=None
+        #move shape if its close to edge and can rotate after that                   
+        if self.origin.x==Shape.MAX_X-1:    
+            print('Move left')
+            new_positions = self.move(Movement.LEFT)                            
+        elif self.origin.x==Shape.MIN_X:
+            print('Move right')
+            new_positions = self.move(Movement.RIGHT)            
+        elif self.origin.y==Shape.MIN_Y:
+            print('Move up')
+            new_positions = self.move(Movement.UP)
+        else:            
+            for cell in self.cells:
+                new_positions[cell]=Point(cell.point.x, cell.point.y)          
+        
+        
+        if not self.try_rotate(new_positions, rotation, degrees, shapes):
+            self.rotation_counter=tmp_counter            
+            return 
+        else:
+            print(degrees)
+            print(rotation)
+            print('Try move left')
+            new_positions = self.move(Movement.LEFT)
+            collision=self.collision(new_positions, shapes)
+            if not collision:          
+                if not self.try_rotate(new_positions, rotation, degrees, shapes):
+                    self.rotation_counter=tmp_counter
+                    return 
+                else:
+                    print('Collision')
+                    collision=True
+            if collision:     
+                print('Try move right')           
+                new_positions = self.move(Movement.RIGHT)
+                collision = self.collision(new_positions, shapes)
+                if not collision:
+                    if not self.try_rotate(new_positions, rotation, degrees, shapes):
+                        self.rotation_counter=tmp_counter
+                        return
+                    else:  
+                        print('Collision')
+                        collision=True
+            if collision:    
+                print('Try move up')
+                new_positions = self.move(Movement.UP)
+                if not self.collision(new_positions, shapes):                
+                    if not self.try_rotate(new_positions, rotation, degrees, shapes):
+                        self.rotation_counter=tmp_counter
+                        return  
+                    else:
+                        print('Collision')
+                        collision=True 
         
 class ZShapeLeft(ZShape):
     def __init__(self, origin):
-        super(ZShapeLeft, self).__init__(origin)
+        super(ZShapeLeft, self).__init__(origin)        
         
-        CellBackground.green=1
-        self.add_cell(origin)
-        CellBackground.green=0
+        self.add_cell(origin)        
         self.add_cell(Point(origin.x-1, origin.y))
         self.add_cell(Point(origin.x-1, origin.y-1))        
         self.add_cell(Point(origin.x, origin.y+1)) 
@@ -211,7 +337,19 @@ class ZShapeRight(ZShape):
         self.add_cell(origin)
         self.add_cell(Point(origin.x-1, origin.y))
         self.add_cell(Point(origin.x-1, origin.y+1))        
-        self.add_cell(Point(origin.x, origin.y-1))   
+        self.add_cell(Point(origin.x, origin.y-1)) 
+        
+class SquareShape(Shape):
+    def __init__(self, origin):
+        super(SquareShape, self).__init__(origin)
+        
+        self.add_cell(origin)
+        self.add_cell(Point(origin.x+1, origin.y))
+        self.add_cell(Point(origin.x+1, origin.y-1))        
+        self.add_cell(Point(origin.x, origin.y-1))
+        
+    def rotate(self, shapes):
+        pass
         
 if __name__=="__main__":
     sh1 = TShape(Point(3,3))

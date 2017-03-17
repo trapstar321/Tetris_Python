@@ -2,6 +2,12 @@ from kivy.vector import Vector
 import numpy
 import math
 from point import Point
+from enum import Enum
+
+class Rotation(Enum):
+    CLOCKWISE=1
+    COUNTER_CLOCKWISE=2
+
 
 rotation_matrix_clockwise=numpy.array(
     [
