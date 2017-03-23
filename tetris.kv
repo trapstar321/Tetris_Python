@@ -11,25 +11,25 @@
 <CellBackground>
 	canvas:		
 		Color:
-        	rgba: self.red, self.green, self.blue, 1
+        	rgba: self.parent.red, self.parent.green, self.parent.blue, 1
 		Rectangle:
 			size:self.size(),self.size()
 			pos:self.parent.x+self.margin(),self.parent.y+self.margin()
+
+
 			
 <Cell>	
 	border:brdr
-	background:bckgrnd
+	background:bckgrnd	
 	
 	CellBorder:
 		id:brdr
 	CellBackground:
 		id:bckgrnd
 	
-		
-		
-		
-						
-		
-
-
-	
+<Tetris>
+	score:scr		
+	Label:
+		id:scr	
+		pos:0,self.parent.size[1]-25
+		size:self.size[0],25

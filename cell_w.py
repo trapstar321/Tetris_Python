@@ -4,14 +4,13 @@ from kivy.core.window import Window
 from kivy.properties import ObjectProperty,NumericProperty
 
 class CellBorder(Widget):
-    red=NumericProperty(0.1)
-    green=NumericProperty(0.2)
-    blue=NumericProperty(0.3)    
+    red=NumericProperty(1)
+    green=NumericProperty(1)
+    blue=NumericProperty(1)    
 
 class CellBackground(Widget):
-    red=NumericProperty(0.3)
-    green=NumericProperty(0.2)
-    blue=NumericProperty(0.1)
+    def __init__(self,**kwargs):
+        super(CellBackground,self).__init__(**kwargs)        
     
     def size(self):
         return self.parent.size[0]/1.1
@@ -22,10 +21,16 @@ class CellBackground(Widget):
 class Cell(Widget):   
     background=ObjectProperty(None)
     border=ObjectProperty(None) 
-    def __init__(self,point,**kwargs):
-        size=(Window.size[0]/10, Window.size[1]/20)                
+    score=ObjectProperty(None)
+    def __init__(self,point,background,**kwargs):
+        size=(400/10, 800/20)                
         kwargs['size']=size 
         self.point=point
+        self.added=False
+        
+        self.red = background.r
+        self.green = background.g
+        self.blue = background.b
         
         super(Cell, self).__init__(**kwargs)
         

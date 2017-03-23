@@ -4,6 +4,8 @@ from movement import Movement
 from kivy.clock import Clock
 from point import Point
 from shapes import Shape
+from kivy.graphics import Color
+from kivy.properties import ObjectProperty
 
 class Tetris(Widget):
     LEFT=276
@@ -16,10 +18,13 @@ class Tetris(Widget):
     W=119
     UP=273    
     
+    score = ObjectProperty(None)
+    
     def __init__(self, **kwargs):
         super(Tetris, self).__init__(**kwargs)
         self.shapes=[]       
         self.current=None
+        self.current_score=0        
         
         self.keys = {}
         self.keys[Tetris.LEFT]={'handled':True, 'keydown':False}
@@ -36,15 +41,19 @@ class Tetris(Widget):
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
         self._keyboard.bind(on_key_up=self._on_keyboard_up)
     
+        self.update_score(0)
+    
         Clock.schedule_interval(self.movement, 0.07)
         Clock.schedule_interval(self.rotation, 0.2) 
     
+    def update_score(self, x):
+        self.current_score+=x        
+        self.score.text = 'Score: {0}'.format(self.current_score)
+    
     def add_shape(self, shape):
         self.shapes.append(shape)
-        cells = shape.cells
-        
-        for cell in cells:            
-            self.add_widget(cell)
+        #for cell in cells:            
+            #self.add_widget(cell)            
     
     def current_shape(self, shape):
         self.current=shape
@@ -78,7 +87,9 @@ class Tetris(Widget):
             ret = False
         return ret
         
-    def movement(self,dt):
+    def movement(self,dt):        
+        self.update_score(1)
+                
         collision=None        
         if self.key_pressed(Tetris.LEFT) or self.key_pressed(Tetris.A):
             new_positions = self.current.move(Movement.LEFT)
@@ -96,12 +107,26 @@ class Tetris(Widget):
             if not collision:
                 self.current.apply_changes(new_positions) 
             else:
-                self.current.lock_shape() 
+                self.current.lock_shape()
+                         
+        self.hide_out_of_bound_cells()
+        
         
     def rotation(self, dt):
         if self.key_pressed(Tetris.SPACE) or self.key_pressed(Tetris.UP) or self.key_pressed(Tetris.W):
             self.current.rotate(self.shapes)
+            self.hide_out_of_bound_cells()
+            
+    def hide_out_of_bound_cells(self):
+        for cell in self.current.cells:
+            if cell.point.y>=Shape.MAX_Y-1 and cell.added:
+                cell.added=False
+                self.remove_widget(cell)
+            if cell.point.y<=Shape.MAX_Y-1 and not cell.added:
+                cell.added=True                
+                self.add_widget(cell)
      
+    
     def remove_row(self, y):
         for x in range(0, Shape.MAX_X):
             for shape in self.shapes:
