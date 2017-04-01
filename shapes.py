@@ -17,17 +17,55 @@ class Shape(object):
         self.locked=False
         self.background=background        
         
-    def add_cell(self, point):
+    def add_cell(self, point, cell_size):
         assert point.x<Shape.MAX_X #and point.y<Shape.MAX_Y
         assert point.x>=Shape.MIN_Y and point.y>=Shape.MIN_Y    
                 
-        c = Cell(point=point, background=self.background)
+        c = Cell(point=point, background=self.background, size=cell_size)
         
         self.cells.append(c)        
         c.pos = (point.x*c.size[0], point.y*c.size[1])
     
     def get_cell(self, point):
         return filter(lambda x: x.point.x==point.x and x.point.y==point.y, self.cells)
+    
+    def max_y(self):
+        ys = [cell.point.y for cell in self.cells]
+        if len(ys)==0:
+            return None
+        return max(ys)
+    
+    def max_y_pos(self):
+        ys = [cell.pos[1] for cell in self.cells]
+        if len(ys)==0:
+            return None
+        return max(ys)
+    
+    def min_y(self):
+        ys = [cell.point.y for cell in self.cells]
+        return min(ys)
+    
+    def max_y_on_x(self, x):
+        cells = []
+        for cell in self.cells:
+            if cell.point.x==x:
+                cells.append(cell)
+        
+        ys = [cell.point.y for cell in cells]
+        if len(ys)==0:
+            return None
+        return max(ys)        
+    
+    def min_y_on_x(self, x):
+        cells = []
+        for cell in self.cells:
+            if cell.point.x==x:
+                cells.append(cell)
+        
+        ys = [cell.point.y for cell in cells]
+        if len(ys)==0:
+            return None
+        return min(ys)      
     
     def move_cell(self, cell, new_position):
         assert new_position.x<Shape.MAX_X #and new_position.y<Shape.MAX_Y
@@ -42,14 +80,11 @@ class Shape(object):
             return True
         
         for pos in new_positions.values():           
-            if pos.x<Shape.MIN_X:  
-                print('Collide with left edge')                  
+            if pos.x<Shape.MIN_X: 
                 return True
-            if pos.x>Shape.MAX_X-1:
-                print('Collide with right edge')                    
+            if pos.x>Shape.MAX_X-1:                                    
                 return True
-            if pos.y<Shape.MIN_Y:        
-                print('Collide with bottom')        
+            if pos.y<Shape.MIN_Y:
                 return True
             
             for shape in shapes: 
@@ -74,16 +109,16 @@ class Shape(object):
     
     #rotate with collision check
     #if rotation is successfull without collision, changes are applied to cells of shape
-    def try_rotate(self, positions, rotation, degrees, shapes):
+    def try_rotate(self, positions, rotation, degrees, shapes):        
         x = int(degrees/90)
         if rotation==Rotation.CLOCKWISE: 
             for _ in range(0,x):           
                 for key, value in positions.items():                
                     positions[key] = rotate_around_origin_clockwise(positions[self.cells[0]].as_tuple(), value.as_tuple())
-                if not self.collision(positions, shapes):                
+                if not self.collision(positions, shapes):                               
                     continue
                 else:
-                    print('Collision')
+                    print('Collision')     
                     return True
             self.apply_changes(positions)
         elif rotation==Rotation.COUNTER_CLOCKWISE:
@@ -93,7 +128,7 @@ class Shape(object):
                 if not self.collision(positions, shapes):
                     continue
                 else:
-                    print('Collision')
+                    print('Collision')     
                     return True
             self.apply_changes(positions) 
         return False               
@@ -102,11 +137,9 @@ class Shape(object):
         new_positions = self.move(movement)
         collision = self.collision(new_positions, shapes)
         if not collision:
-            print('Move left and rotate')
             if not self.try_rotate(new_positions, rotation, degrees, shapes):
                 return False
         else:
-            print('Collision')
             return False
         return True
     
@@ -123,9 +156,7 @@ class Shape(object):
                 return
         elif self.origin.y==Shape.MIN_Y:
             if not self.try_move_with_rotate(Movement.UP, Rotation.CLOCKWISE, 90, shapes):
-                return
-        
-        print('Did not move before rotating')
+                return        
         
         for cell in self.cells[1:]:
             new_positions[cell] = rotate_around_origin_clockwise(self.origin.as_tuple(), cell.point.as_tuple())
@@ -133,7 +164,6 @@ class Shape(object):
         if not self.collision(new_positions, shapes):
             self.apply_changes(new_positions) 
         else:
-            print('Try move left')
             new_positions = self.move(Movement.LEFT)
             collision=self.collision(new_positions, shapes)
             if not collision:          
@@ -141,8 +171,7 @@ class Shape(object):
                     return 
                 else:
                     collision=True 
-            if collision:     
-                print('Try move right')           
+            if collision:         
                 new_positions = self.move(Movement.RIGHT)
                 collision = self.collision(new_positions, shapes)
                 if not collision:
@@ -150,8 +179,7 @@ class Shape(object):
                         return
                     else:  
                         collision=True
-            if collision:    
-                print('Try move up')
+            if collision:
                 new_positions = self.move(Movement.UP)
                 if not self.collision(new_positions, shapes):                
                     if not self.try_rotate(new_positions, Rotation.CLOCKWISE, 90, shapes):
@@ -189,61 +217,94 @@ class Shape(object):
     
     def lock_shape(self):
         self.locked=True            
+    
+    def enter(self, max_y_on_x):
+        on_screen = self.max_y()-Shape.MAX_Y+1
+        if on_screen>0:            
+            for _ in range(0, on_screen):
+                new_positions = self.move(Movement.DOWN)
+                self.apply_changes(new_positions) 
+        
+        for x in max_y_on_x:
+            if max_y_on_x[x] is None:
+                continue
+            min_y = self.min_y_on_x(x)
+            if min_y is None:
+                continue
+            diff = (max_y_on_x[x]-min_y)+1
+                        
+            if diff>0:                
+                for _ in range(0, diff):                    
+                    new_positions = self.move(Movement.UP)
+                    self.apply_changes(new_positions)
         
 class TShape(Shape):
-    def __init__(self, background, y):
-        super(TShape, self).__init__(background)
-        
-        origin = Point(4, y)
+    def __init__(self, background, size, rotation):        
+        super(TShape, self).__init__(background)        
+    
+        origin = Point(4, Shape.MAX_Y)
         self.origin=origin
+        self.rotation=rotation
         
-        self.add_cell(origin)
-        self.add_cell(Point(origin.x+1, origin.y))
-        self.add_cell(Point(origin.x-1, origin.y))        
-        self.add_cell(Point(origin.x, origin.y+1))
+        self.add_cell(origin, size)
+        self.add_cell(Point(origin.x+1, origin.y), size)
+        self.add_cell(Point(origin.x-1, origin.y), size)        
+        self.add_cell(Point(origin.x, origin.y+1), size)
         
         positions={}
         for cell in self.cells:
-            positions[cell]=Point(cell.point.x, cell.point.y)
+            positions[cell]=Point(cell.point.x, cell.point.y)        
         
-        self.try_rotate(positions, self.random_rotation(), self.random_degrees(), [])
+        if rotation is None:            
+            self.rotation = {'rotation':self.random_rotation(), 'degrees':self.random_degrees()}
+            
+        self.try_rotate(positions, self.rotation['rotation'], self.rotation['degrees'], [])
         
 
 class LShapeRight(Shape):
-    def __init__(self, background, y):
+    def __init__(self, background, size, rotation):
         super(LShapeRight, self).__init__(background)
         
-        origin = Point(4, y)
+        self.rotation=rotation
+        
+        origin = Point(4, Shape.MAX_Y)
         self.origin=origin
-        self.add_cell(origin)
-        self.add_cell(Point(origin.x, origin.y-1))
-        self.add_cell(Point(origin.x, origin.y+1))
-        self.add_cell(Point(origin.x+1, origin.y-1))
+        self.add_cell(origin, size)
+        self.add_cell(Point(origin.x, origin.y-1), size)
+        self.add_cell(Point(origin.x, origin.y+1), size)
+        self.add_cell(Point(origin.x+1, origin.y-1), size)
         
         positions={}
         for cell in self.cells:
             positions[cell]=Point(cell.point.x, cell.point.y)
         
-        self.try_rotate(positions, self.random_rotation(), self.random_degrees(), [])
+        if not self.rotation:            
+            self.rotation={'rotation':self.random_rotation(), 'degrees':self.random_degrees()}
+        
+        self.try_rotate(positions, self.rotation['rotation'], self.rotation['degrees'], [])
         
 class LShapeLeft(Shape):
-    def __init__(self, background, y):
+    def __init__(self, background, size, rotation):
         super(LShapeLeft, self).__init__(background)
                 
-        origin = Point(4, y)
+        self.rotation=rotation
+                
+        origin = Point(4, Shape.MAX_Y)
         self.origin=origin
                 
-        self.add_cell(origin)        
-        self.add_cell(Point(origin.x, origin.y-1))
-        self.add_cell(Point(origin.x, origin.y+1))
-        self.add_cell(Point(origin.x-1, origin.y-1))   
+        self.add_cell(origin, size)        
+        self.add_cell(Point(origin.x, origin.y-1), size)
+        self.add_cell(Point(origin.x, origin.y+1), size)
+        self.add_cell(Point(origin.x-1, origin.y-1), size)   
         
         positions={}
         for cell in self.cells:
             positions[cell]=Point(cell.point.x, cell.point.y)
         
-        self.try_rotate(positions, self.random_rotation(), self.random_degrees(), [])
-                  
+        if not self.rotation:
+            self.rotation={'rotation':self.random_rotation(), 'degrees':self.random_degrees()}
+        
+        self.try_rotate(positions, self.rotation['rotation'], self.rotation['degrees'], [])      
 
 class ZShape(Shape):
     def __init__(self, background):
@@ -262,7 +323,6 @@ class ZShape(Shape):
         return rotation
     
     def rotate(self, shapes):
-        print("Rotate")
         new_positions={}
         
         tmp_counter = self.rotation_counter
@@ -274,31 +334,23 @@ class ZShape(Shape):
         if tmp_counter==2:            
             degrees=90
             rotation=Rotation.COUNTER_CLOCKWISE
-            print('2 90 COUNTER CLOCKWISE')
         elif tmp_counter==3:            
             degrees=270
             rotation=Rotation.COUNTER_CLOCKWISE
-            print('3 270 COUNTER CLOCKWISE')
         elif tmp_counter==4:            
             degrees=90
             rotation=Rotation.CLOCKWISE
-            print('4 90 CLOCKWISE')
-        else:
-            print('1 270 CLOCKWISE')
         
         if tmp_counter==4:
             tmp_counter=0
         
         collision=None
         #move shape if its close to edge and can rotate after that                   
-        if self.origin.x==Shape.MAX_X-1:    
-            print('Move left')
+        if self.origin.x==Shape.MAX_X-1:
             new_positions = self.move(Movement.LEFT)                            
         elif self.origin.x==Shape.MIN_X:
-            print('Move right')
             new_positions = self.move(Movement.RIGHT)            
         elif self.origin.y==Shape.MIN_Y:
-            print('Move up')
             new_positions = self.move(Movement.UP)
         else:            
             for cell in self.cells:
@@ -309,9 +361,6 @@ class ZShape(Shape):
             self.rotation_counter=tmp_counter            
             return 
         else:
-            print(degrees)
-            print(rotation)
-            print('Try move left')
             new_positions = self.move(Movement.LEFT)
             collision=self.collision(new_positions, shapes)
             if not collision:          
@@ -319,84 +368,213 @@ class ZShape(Shape):
                     self.rotation_counter=tmp_counter
                     return 
                 else:
-                    print('Collision')
                     collision=True
-            if collision:     
-                print('Try move right')           
+            if collision:         
                 new_positions = self.move(Movement.RIGHT)
                 collision = self.collision(new_positions, shapes)
                 if not collision:
                     if not self.try_rotate(new_positions, rotation, degrees, shapes):
                         self.rotation_counter=tmp_counter
                         return
-                    else:  
-                        print('Collision')
+                    else:
                         collision=True
-            if collision:    
-                print('Try move up')
+            if collision:
                 new_positions = self.move(Movement.UP)
                 if not self.collision(new_positions, shapes):                
                     if not self.try_rotate(new_positions, rotation, degrees, shapes):
                         self.rotation_counter=tmp_counter
                         return  
                     else:
-                        print('Collision')
                         collision=True 
         
 class ZShapeLeft(ZShape):
-    def __init__(self, background, y):
+    def __init__(self, background, size, rotation):
         super(ZShapeLeft, self).__init__(background)        
         
-        origin = Point(4,y)
+        self.rotation=rotation
+        
+        origin = Point(4,Shape.MAX_Y)
         self.origin=origin
         
-        self.add_cell(origin)        
-        self.add_cell(Point(origin.x-1, origin.y))
-        self.add_cell(Point(origin.x-1, origin.y-1))        
-        self.add_cell(Point(origin.x, origin.y+1)) 
+        self.add_cell(origin, size)        
+        self.add_cell(Point(origin.x-1, origin.y), size)
+        self.add_cell(Point(origin.x-1, origin.y-1), size)        
+        self.add_cell(Point(origin.x, origin.y+1), size) 
         
-        positions={}
-        for cell in self.cells:
-            positions[cell]=Point(cell.point.x, cell.point.y)
-        
-        rotation = self.random_rotation()        
-        for _ in range(0,rotation['rotations']):
-            self.rotate([]) 
+        if not self.rotation:
+            self.rotation=self.random_rotation()
+          
+        for _ in range(0,self.rotation['rotations']):
+            self.rotate([])
         
 class ZShapeRight(ZShape):
-    def __init__(self, background, y):
+    def __init__(self, background, size, rotation):
         super(ZShapeRight, self).__init__(background)
         
-        origin = Point(4, y)
+        self.rotation=rotation
+        
+        origin = Point(4, Shape.MAX_Y)
         self.origin=origin
                 
-        self.add_cell(origin)
-        self.add_cell(Point(origin.x-1, origin.y))
-        self.add_cell(Point(origin.x-1, origin.y+1))        
-        self.add_cell(Point(origin.x, origin.y-1)) 
+        self.add_cell(origin, size)
+        self.add_cell(Point(origin.x-1, origin.y), size)
+        self.add_cell(Point(origin.x-1, origin.y+1), size)        
+        self.add_cell(Point(origin.x, origin.y-1), size)
         
-        positions={}
-        for cell in self.cells:
-            positions[cell]=Point(cell.point.x, cell.point.y)
-        
-        rotation = self.random_rotation()
-        for _ in range(0,rotation['rotations']):
-            self.rotate([]) 
+        if not self.rotation:
+            self.rotation = self.random_rotation()
+            
+        for _ in range(0,self.rotation['rotations']):
+            self.rotate([])
         
 class SquareShape(Shape):
-    def __init__(self, background, y):
+    def __init__(self, background, size, rotation):
         super(SquareShape, self).__init__(background)
         
-        origin = Point(4, y)
+        self.rotation=rotation
+        
+        origin = Point(4, Shape.MAX_Y)
         self.origin=origin
         
-        self.add_cell(origin)
-        self.add_cell(Point(origin.x+1, origin.y))
-        self.add_cell(Point(origin.x+1, origin.y-1))        
-        self.add_cell(Point(origin.x, origin.y-1))
+        self.add_cell(origin, size)
+        self.add_cell(Point(origin.x+1, origin.y), size)
+        self.add_cell(Point(origin.x+1, origin.y-1), size)        
+        self.add_cell(Point(origin.x, origin.y-1), size)
         
     def rotate(self, shapes):
         pass
+    
+class IShape(Shape):
+    def __init__(self, background, size, rotation):
+        self.rotation_counter=0
+        super(IShape, self).__init__(background)    
+        
+        self.rotation=rotation
+        
+        origin = Point(4, Shape.MAX_Y)
+        self.origin=origin
+        
+        self.add_cell(origin, size)
+        self.add_cell(Point(origin.x, origin.y-1), size)
+        self.add_cell(Point(origin.x, origin.y+1), size)        
+        self.add_cell(Point(origin.x, origin.y+2), size)
+        
+        if not self.rotation:
+            self.rotation = self.random_rotation()
+                    
+        for _ in range(0,self.rotation['rotations']):
+            self.rotate([])
+        
+    def random_rotation(self):
+        rotations=[
+            {'rotation':Rotation.CLOCKWISE, 'degrees':90, 'rotations':0},            
+            {'rotation':Rotation.CLOCKWISE, 'degrees':90, 'rotations':1},
+            {'rotation':Rotation.COUNTER_CLOCKWISE, 'degrees':90, 'rotations':2},
+            {'rotation':Rotation.COUNTER_CLOCKWISE, 'degrees':90, 'rotations':3},
+        ]
+        
+        rotation=rotations[roll_die(len(rotations), 20)]
+        return rotation
+    
+    def move_origin(self, movement):
+        new_origin=None
+        if movement==Movement.LEFT:
+            new_origin = Point(self.cells[0].point.x-1, self.cells[0].point.y)
+            
+        elif movement==Movement.RIGHT:
+            new_origin=Point(self.cells[0].point.x+1, self.cells[0].point.y)
+        
+        if not new_origin is None:
+            cells = self.get_cell(new_origin)
+            
+            if not cells is None:
+                cell = list(cells)[0]
+                ind=None
+                for idx, c in enumerate(self.cells):
+                    if c is cell:
+                        ind=idx
+                         
+                
+                tmp_cell = self.cells[0]
+                self.cells[0]=cell
+                self.cells[ind]=tmp_cell
+                
+                self.origin=self.cells[0].point
+    
+    def rotate(self, shapes):
+        new_positions={}
+        
+        tmp_counter = self.rotation_counter
+        
+        tmp_counter+=1
+        degrees=90
+        
+        switch_origin=Movement.RIGHT        
+        rotation=Rotation.CLOCKWISE
+        
+        if tmp_counter==2:            
+            degrees=90
+            rotation=Rotation.CLOCKWISE
+            switch_origin=None
+        elif tmp_counter==3:            
+            degrees=90
+            rotation=Rotation.COUNTER_CLOCKWISE
+            switch_origin=Movement.LEFT
+        elif tmp_counter==4:            
+            degrees=90
+            switch_origin=None
+            rotation=Rotation.COUNTER_CLOCKWISE
+                
+        if tmp_counter==4:
+            tmp_counter=0
+        
+        collision=None
+        #move shape if its close to edge and can rotate after that                   
+        if self.origin.x==Shape.MAX_X-1:
+            new_positions = self.move(Movement.LEFT)                            
+        elif self.origin.x==Shape.MIN_X:
+            new_positions = self.move(Movement.RIGHT)            
+        elif self.origin.y==Shape.MIN_Y:
+            new_positions = self.move(Movement.UP)
+        else:            
+            for cell in self.cells:
+                new_positions[cell]=Point(cell.point.x, cell.point.y)
+        
+        if not self.try_rotate(new_positions, rotation, degrees, shapes):
+            self.rotation_counter=tmp_counter 
+            self.move_origin(switch_origin)           
+            return 
+        else:
+            new_positions = self.move(Movement.LEFT)
+            collision=self.collision(new_positions, shapes)
+            if not collision:          
+                if not self.try_rotate(new_positions, rotation, degrees, shapes):
+                    self.rotation_counter=tmp_counter
+                    self.move_origin(switch_origin)
+                    return 
+                else:
+                    collision=True
+            if collision:           
+                new_positions = self.move(Movement.RIGHT)
+                collision = self.collision(new_positions, shapes)
+                if not collision:
+                    if not self.try_rotate(new_positions, rotation, degrees, shapes):
+                        self.rotation_counter=tmp_counter
+                        self.move_origin(switch_origin)
+                        return
+                    else:
+                        collision=True
+            if collision:
+                new_positions = self.move(Movement.UP)
+                if not self.collision(new_positions, shapes):                
+                    if not self.try_rotate(new_positions, rotation, degrees, shapes):
+                        self.rotation_counter=tmp_counter
+                        self.move_origin(switch_origin)
+                        return  
+                    else:
+                        collision=True 
+                        
+        
         
 if __name__=="__main__":
     sh1 = TShape(Point(3,3))

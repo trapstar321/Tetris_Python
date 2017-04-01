@@ -6,6 +6,7 @@ from point import Point
 from shapes import Shape
 from kivy.graphics import Color
 from kivy.properties import ObjectProperty
+from score import Score
 
 class Tetris(Widget):
     LEFT=276
@@ -18,13 +19,18 @@ class Tetris(Widget):
     W=119
     UP=273    
     
+    MAX_ROTATIONS=8
+    
     score = ObjectProperty(None)
     
     def __init__(self, **kwargs):
         super(Tetris, self).__init__(**kwargs)
         self.shapes=[]       
         self.current=None
-        self.current_score=0        
+        self.current_score=0
+        
+        self.n_current_rotations=0
+        self.rotated=False      
         
         self.keys = {}
         self.keys[Tetris.LEFT]={'handled':True, 'keydown':False}
@@ -45,10 +51,25 @@ class Tetris(Widget):
     
         Clock.schedule_interval(self.movement, 0.07)
         Clock.schedule_interval(self.rotation, 0.2) 
+        Clock.schedule_interval(self.move_down, 0.8)
     
     def update_score(self, x):
         self.current_score+=x        
         self.score.text = 'Score: {0}'.format(self.current_score)
+    
+    def reset(self):        
+        for shape in self.shapes:
+            for cell in shape.cells:
+                self.remove_widget(cell)
+        
+        self.shapes=[]
+        self.current=None
+        self.n_current_rotations=0
+        self.rotated=False
+        self.current_score=0
+        self.update_score(0) 
+        
+        return
     
     def add_shape(self, shape):
         self.shapes.append(shape)
@@ -86,10 +107,12 @@ class Tetris(Widget):
         else:
             ret = False
         return ret
+    
+    def lock_current_shape(self):
+        self.current.lock_shape()
+        self.n_current_rotations=0
         
     def movement(self,dt):        
-        self.update_score(1)
-                
         collision=None        
         if self.key_pressed(Tetris.LEFT) or self.key_pressed(Tetris.A):
             new_positions = self.current.move(Movement.LEFT)
@@ -106,18 +129,36 @@ class Tetris(Widget):
             collision=self.current.collision(new_positions, self.shapes)
             if not collision:
                 self.current.apply_changes(new_positions) 
+                self.update_score(Score.MOVEMENT.value)
             else:
-                self.current.lock_shape()
+                self.lock_current_shape()
                          
         self.hide_out_of_bound_cells()
-        
+    
+    def move_down(self, dt):
+        new_positions = self.current.move(Movement.DOWN)
+        collision=self.current.collision(new_positions, self.shapes)
+        if not collision:
+            self.current.apply_changes(new_positions)
+        else:
+            if not self.rotated:
+                self.lock_current_shape()
+            if self.rotated and self.n_current_rotations==Tetris.MAX_ROTATIONS:
+                self.lock_current_shape()
+                
+        self.rotated=False
+        self.hide_out_of_bound_cells() 
         
     def rotation(self, dt):
         if self.key_pressed(Tetris.SPACE) or self.key_pressed(Tetris.UP) or self.key_pressed(Tetris.W):
+            self.rotated=True
             self.current.rotate(self.shapes)
             self.hide_out_of_bound_cells()
             
-    def hide_out_of_bound_cells(self):
+            if self.n_current_rotations<Tetris.MAX_ROTATIONS:                
+                self.n_current_rotations+=1
+            
+    def hide_out_of_bound_cells(self):        
         for cell in self.current.cells:
             if cell.point.y>=Shape.MAX_Y-1 and cell.added:
                 cell.added=False
@@ -159,6 +200,9 @@ class Tetris(Widget):
         #move all cells after last removed row one row down
         if(len(rows_removed))>0:
             print(max(rows_removed))
+            
+            self.update_score(Score.FULL_ROW.value*len(rows_removed))
+            
             for y in range(max(rows_removed)+1,Shape.MAX_Y) :
                 for x in range(0, Shape.MAX_X):
                     for shape in self.shapes:

@@ -23,8 +23,8 @@ class Cell(Widget):
     border=ObjectProperty(None) 
     score=ObjectProperty(None)
     def __init__(self,point,background,**kwargs):
-        size=(400/10, 800/20)                
-        kwargs['size']=size 
+        #size=(400/10, 800/20)                
+        #kwargs['size']=size 
         self.point=point
         self.added=False
         

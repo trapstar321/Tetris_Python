@@ -1,0 +1,140 @@
+('C:\\Program Files (x86)\\Python36-32\\lib\\site-packages\\kivy\\data',
+ 'kivy_install\\data',
+ [],
+ 'DATA',
+ [('kivy_install\\data\\settings_kivy.json',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\settings_kivy.json',
+   'DATA'),
+  ('kivy_install\\data\\style.kv',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\style.kv',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-128.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\logo\\kivy-icon-128.png',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-16.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\logo\\kivy-icon-16.png',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-24.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\logo\\kivy-icon-24.png',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-256.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\logo\\kivy-icon-256.png',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-32.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\logo\\kivy-icon-32.png',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-48.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\logo\\kivy-icon-48.png',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-512.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\logo\\kivy-icon-512.png',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-64.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\logo\\kivy-icon-64.png',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\azerty.json',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\keyboards\\azerty.json',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\de.json',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\keyboards\\de.json',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\de_CH.json',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\keyboards\\de_CH.json',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\en_US.json',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\keyboards\\en_US.json',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\fr_CH.json',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\keyboards\\fr_CH.json',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\qwerty.json',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\keyboards\\qwerty.json',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\qwertz.json',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\keyboards\\qwertz.json',
+   'DATA'),
+  ('kivy_install\\data\\images\\background.jpg',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\images\\background.jpg',
+   'DATA'),
+  ('kivy_install\\data\\images\\cursor.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\images\\cursor.png',
+   'DATA'),
+  ('kivy_install\\data\\images\\defaulttheme-0.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\images\\defaulttheme-0.png',
+   'DATA'),
+  ('kivy_install\\data\\images\\defaulttheme.atlas',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\images\\defaulttheme.atlas',
+   'DATA'),
+  ('kivy_install\\data\\images\\image-loading.gif',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\images\\image-loading.gif',
+   'DATA'),
+  ('kivy_install\\data\\images\\testpattern.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\images\\testpattern.png',
+   'DATA'),
+  ('kivy_install\\data\\glsl\\default.fs',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\glsl\\default.fs',
+   'DATA'),
+  ('kivy_install\\data\\glsl\\default.png',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\glsl\\default.png',
+   'DATA'),
+  ('kivy_install\\data\\glsl\\default.vs',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\glsl\\default.vs',
+   'DATA'),
+  ('kivy_install\\data\\glsl\\header.fs',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\glsl\\header.fs',
+   'DATA'),
+  ('kivy_install\\data\\glsl\\header.vs',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\glsl\\header.vs',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\DejaVuSans.ttf',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\fonts\\DejaVuSans.ttf',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\Roboto-Bold.ttf',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\fonts\\Roboto-Bold.ttf',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\Roboto-BoldItalic.ttf',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\fonts\\Roboto-BoldItalic.ttf',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\Roboto-Italic.ttf',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\fonts\\Roboto-Italic.ttf',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\Roboto-Regular.ttf',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\fonts\\Roboto-Regular.ttf',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\RobotoMono-Regular.ttf',
+   'C:\\Program Files '
+   '(x86)\\Python36-32\\lib\\site-packages\\kivy\\data\\fonts\\RobotoMono-Regular.ttf',
+   'DATA')])

@@ -1,0 +1,5 @@
+('images',
+ 'images',
+ [],
+ 'DATA',
+ [('images\\tetris.ico', 'images\\tetris.ico', 'DATA')])

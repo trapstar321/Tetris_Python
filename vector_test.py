@@ -1,12 +1,14 @@
-from rotation import rotate_around_origin
+from rotation import rotate_around_origin_clockwise
 
-print(rotate_around_origin((1,1), (0,1)))
-print(rotate_around_origin((1,1), (1,2)))
-print(rotate_around_origin((1,1), (2,1)))
+if __name__=="__main__":
+    print(rotate_around_origin_clockwise((15,3), (15,3)))
 
-print(rotate_around_origin((1,1), (1,0)))
-print(rotate_around_origin((1,1), (0,1)))
-print(rotate_around_origin((1,1), (1,2)))
+    d = {}
+    d[0]=1
+    d[1]=2
+    
+    for x in d:
+        print x
 
 #5,7 -> 4,8
 #4,8 -> 3,7
